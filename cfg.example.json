@@ -22,6 +22,7 @@
     },
     "sms": {
         "sysid": "x",
-        "secret": "x"
+        "secret": "x",
+        "debug": false
     }
 }

@@ -51,6 +51,7 @@ func SendSms(sms *model.Sms) {
 	url := g.Config().Api.Sms
 	sysId := g.Config().Sms.SysId
 	secret := g.Config().Sms.Secret
+	debug := g.Config().Sms.Debug
 
 	// timestamp
 	timeStamp := time.Now().UnixNano() / int64(time.Millisecond)
@@ -74,8 +75,7 @@ func SendSms(sms *model.Sms) {
 	}
 	xmlOutPut, _ := xml.Marshal(message)
 
-
-	r := httplib.Post(url).SetTimeout(5*time.Second, 2*time.Minute).Debug(true)
+	r := httplib.Post(url).SetTimeout(5*time.Second, 2*time.Minute).Debug(debug)
 	r.Param("message", string(xmlOutPut))
 	r.Param("timestamp", timeStampStr)
 	r.Param("systemId", sysId)

@@ -35,6 +35,7 @@ type ApiConfig struct {
 type SmsConfig struct {
 	SysId  string `json:"sysid"`
 	Secret string `json:"secret"`
+	Debug bool    `json:"debug"`
 }
 
 type GlobalConfig struct {
