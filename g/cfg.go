@@ -32,6 +32,11 @@ type ApiConfig struct {
 	Mail string `json:"mail"`
 }
 
+type SmsConfig struct {
+	SysId  string `json:"sysid"`
+	Secret string `json:"secret"`
+}
+
 type GlobalConfig struct {
 	Debug  bool          `json:"debug"`
 	Http   *HttpConfig   `json:"http"`
@@ -39,6 +44,7 @@ type GlobalConfig struct {
 	Queue  *QueueConfig  `json:"queue"`
 	Worker *WorkerConfig `json:"worker"`
 	Api    *ApiConfig    `json:"api"`
+	Sms    *SmsConfig    `json:"sms"`
 }
 
 var (

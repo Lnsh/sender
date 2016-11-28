@@ -1,14 +1,28 @@
 package cron
 
 import (
-	"github.com/open-falcon/sender/g"
-	"github.com/open-falcon/sender/model"
-	"github.com/open-falcon/sender/proc"
-	"github.com/open-falcon/sender/redis"
-	"github.com/toolkits/net/httplib"
+	"github.com/nxintech/sender/g"
+	"github.com/nxintech/sender/model"
+	"github.com/nxintech/sender/proc"
+	"github.com/nxintech/sender/redis"
+	"github.com/astaxie/beego/httplib"
 	"log"
 	"time"
+	"strconv"
+	"encoding/hex"
+	"encoding/xml"
+	"crypto/md5"
 )
+
+type ShortMessage struct {
+	SendSort             string `xml:"sendSort"`
+	SendType             string `xml:"sendType"`
+	IsSwitchChannelRetry int    `xml:"isSwitchChannelRetry"`
+	IsGroup              int    `xml:"isGroup"`
+	PhoneNumber          string `xml:"phoneNumber"`
+	Message              string `xml:"message"`
+	Remarks              string `xml:"remarks"`
+}
 
 func ConsumeSms() {
 	queue := g.Config().Queue.Sms
@@ -35,9 +49,38 @@ func SendSms(sms *model.Sms) {
 	}()
 
 	url := g.Config().Api.Sms
-	r := httplib.Post(url).SetTimeout(5*time.Second, 2*time.Minute)
-	r.Param("tos", sms.Tos)
-	r.Param("content", sms.Content)
+	sysId := g.Config().Sms.SysId
+	secret := g.Config().Sms.Secret
+
+	// timestamp
+	timeStamp := time.Now().UnixNano() / int64(time.Millisecond)
+	timeStampStr := strconv.FormatInt(timeStamp, 10)
+
+	// token
+	md5Ctx := md5.New()
+	md5Ctx.Write([]byte(secret + timeStampStr))
+	cipherStr := md5Ctx.Sum(nil)
+	token := hex.EncodeToString(cipherStr)
+
+	// xml 构造
+	message := &ShortMessage{
+		SendSort: "SMS",
+		SendType: "COMMON_GROUP",
+		IsSwitchChannelRetry: 1,
+		IsGroup: 1,
+		PhoneNumber: sms.Tos,
+		Message: sms.Content,
+		Remarks: sysId,
+	}
+	xmlOutPut, _ := xml.Marshal(message)
+
+
+	r := httplib.Post(url).SetTimeout(5*time.Second, 2*time.Minute).Debug(true)
+	r.Param("message", string(xmlOutPut))
+	r.Param("timestamp", timeStampStr)
+	r.Param("systemId", sysId)
+	r.Param("accessToken", token)
+	r.Param("businessChannel", "OTHERS")
 	resp, err := r.String()
 	if err != nil {
 		log.Println(err)
@@ -48,6 +91,7 @@ func SendSms(sms *model.Sms) {
 	if g.Config().Debug {
 		log.Println("==sms==>>>>", sms)
 		log.Println("<<<<==sms==", resp)
+		log.Println(r.DumpRequest())
 	}
 
 }
