@@ -21,10 +21,7 @@ cfg.json中配置了api:sms和api:mail，即两个http接口，这是需要各�
 ## Installation
 
 ```bash
-# set $GOPATH and $GOROOT
-mkdir -p $GOPATH/src/github.com/open-falcon
-cd $GOPATH/src/github.com/open-falcon
-git clone https://github.com/open-falcon/sender.git
+git clone https://github.com/nxintech/sender.git
 cd sender
 go get ./...
 ./control build
@@ -38,5 +35,5 @@ go get ./...
 - queue: 维持默认即可，需要和alarm的配置一致
 - worker: 最多同时有多少个线程玩命得调用短信、邮件发送接口
 - api: 短信、邮件发送的http接口，各公司自己提供
-- sms: 配置短信的相关信息
+- sms: 消息中心配置相关信息
 
